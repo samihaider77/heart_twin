@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
+import Link from 'next/link';
 import { api } from '@/lib/api';
 import { Patient, PatientBrief, AIAnalysis } from '@/types/patient';
 import HeartViewer3D from '@/components/HeartViewer3D';
@@ -8,7 +9,26 @@ import ParameterPanel from '@/components/ParameterPanel';
 import ControlSliders from '@/components/ControlSliders';
 import AIAnalysisCard from '@/components/AIAnalysisCard';
 import PatientSelector from '@/components/PatientSelector';
-import { Activity, Heart } from 'lucide-react';
+import { Activity, Heart, Monitor } from 'lucide-react';
+import { useSignalStreaming } from '@/hooks/useSignalStreaming';
+
+function MiniMonitor({ patientId }: { patientId: number }) {
+  const streamingState = useSignalStreaming(patientId, true, 3, 30);
+  const values = streamingState.ecgWindow.values;
+  if (!values.length) return <div className="h-full w-full bg-slate-900 animate-pulse"></div>;
+  
+  // Render a simple SVG sparkline for the mini monitor
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const range = max - min || 1;
+  const pts = values.slice(-100).map((v, i, arr) => `${(i / Math.max(1, arr.length - 1)) * 100},${100 - ((v - min) / range) * 100}`).join(' ');
+  
+  return (
+    <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+      <polyline points={pts} fill="none" stroke="#10b981" strokeWidth="2" vectorEffect="non-scaling-stroke" />
+    </svg>
+  );
+}
 
 export default function Dashboard() {
   const [patients, setPatients] = useState<PatientBrief[]>([]);
@@ -95,11 +115,32 @@ export default function Dashboard() {
               <p className="text-slate-400 text-sm font-medium">Real-time physiological simulation & AI diagnostics</p>
             </div>
           </div>
-          <PatientSelector 
-            patients={patients} 
-            selectedId={currentPatient.id} 
-            onSelect={handlePatientSelect} 
-          />
+          <div className="flex items-center gap-3">
+            <Link 
+              href="/monitor" 
+              className="
+                flex items-center gap-2 px-4 py-2 rounded-lg
+                bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30
+                text-emerald-400 hover:text-emerald-300 transition-all
+                font-medium text-sm overflow-hidden relative group
+              "
+              title="Open real-time cardiac monitor"
+            >
+              <div className="absolute inset-0 bg-emerald-500/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+              <Monitor size={18} className="z-10" />
+              <span className="z-10">Monitor</span>
+              <div className="ml-2 w-24 h-8 opacity-70 flex items-center justify-center -mr-2 bg-black/40 rounded overflow-hidden">
+                <MiniMonitor patientId={currentPatient.id} />
+              </div>
+            </Link>
+            <PatientSelector 
+              patients={patients} 
+              selectedId={currentPatient.id} 
+              onSelect={(id) => {
+                handlePatientSelect(id);
+              }} 
+            />
+          </div>
         </header>
 
         {/* Dashboard Grid */}

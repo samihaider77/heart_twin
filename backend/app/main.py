@@ -2,7 +2,7 @@ import os
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routes import patients, analysis
+from app.routes import patients, analysis, signals
 
 app = FastAPI(
     title="Cardiac Digital Twin API",
@@ -31,6 +31,7 @@ app.add_middleware(
 # Register routes
 app.include_router(patients.router, prefix="/api/v1")
 app.include_router(analysis.router, prefix="/api/v1")
+app.include_router(signals.router, prefix="/api/v1")
 
 @app.get("/")
 def root():

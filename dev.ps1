@@ -8,12 +8,12 @@ try {
     Write-Host "[OK] Ollama is running." -ForegroundColor Green
 } catch {
     Write-Host "[!] Warning: Ollama is not running. AI analysis will be unavailable." -ForegroundColor Yellow
-    Write-Host "Please start Ollama and pull gemma2:2b if you haven't already." -ForegroundColor Gray
+    Write-Host "Please start Ollama and pull gemma4 if you haven't already." -ForegroundColor Gray
 }
 
 # Start Backend
 Write-Host "[*] Starting Backend (FastAPI)..." -ForegroundColor Blue
-Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd backend; uvicorn app.main:app --reload --port 8000"
+Start-Process powershell -ArgumentList "-NoExit", "-Command", "& .\venv\Scripts\Activate.ps1; cd backend; python -m uvicorn app.main:app --host 127.0.0.1 --port 8000"
 
 # Start Frontend
 Write-Host "[*] Starting Frontend (Next.js)..." -ForegroundColor Blue

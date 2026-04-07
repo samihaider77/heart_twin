@@ -4,9 +4,9 @@ import ollama
 from ..models.patient import AIAnalysisRequest, AIAnalysisResponse
 
 class AIService:
-    def __init__(self, model_name="gemma2:2b"):
-        self.model_name = model_name
-        self.timeout_seconds = float(os.getenv("OLLAMA_TIMEOUT_SECONDS", "5"))
+    def __init__(self, model_name=None):
+        self.model_name = model_name or os.getenv("OLLAMA_MODEL", "gemma3:4b")
+        self.timeout_seconds = float(os.getenv("OLLAMA_TIMEOUT_SECONDS", "120"))
         self.client = ollama.Client(
             host=os.getenv("OLLAMA_HOST"),
             timeout=self.timeout_seconds,
@@ -79,7 +79,7 @@ class AIService:
         return AIAnalysisResponse(
             observation="AI Analysis unavailable.",
             risk_factor=f"Error: {error_msg}",
-            recommendation="Please ensure Ollama is running and gemma2:2b is installed.",
+            recommendation="Please ensure Ollama is running and gemma3:4b is installed.",
             risk_score=risk_score,
             risk_level=risk_level
         )

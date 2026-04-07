@@ -6,3 +6,5 @@ ollama
 requests
 python-multipart
 python-dotenv
+neurokit2
+numpy

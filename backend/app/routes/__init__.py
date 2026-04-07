@@ -1,1 +1,1 @@
-from . import patients, analysis
+from . import patients, analysis, signals

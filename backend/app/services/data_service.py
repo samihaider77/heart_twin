@@ -117,3 +117,12 @@ class DataService:
             'stroke_volume': stroke_volume,
             'cardiac_output': cardiac_output
         }
+
+
+# Singleton instance
+_data_service = DataService()
+
+
+def get_data_service() -> DataService:
+    """Get or create the data service instance."""
+    return _data_service
