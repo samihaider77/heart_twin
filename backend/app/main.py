@@ -22,7 +22,7 @@ frontend_origins = [
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=frontend_origins,
+    allow_origins=["*"],  # Filhal testing ke liye "*" kar dein taake sab allow ho jaye
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
