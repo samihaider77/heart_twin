@@ -2,7 +2,7 @@ import axios from 'axios';
 import { Patient, PatientBrief, AIAnalysis } from '../types/patient';
 import { SignalResponse, SignalMetadata, VitalSigns } from '../types/signals';
 
-const API_BASE_URL = (process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8000/api/v1').replace(/\/$/, '');
+const API_BASE_URL = 'https://heart-twin-960700171922.europe-west1.run.app/api/v1';
 
 export const api = {
   getPatients: async (): Promise<PatientBrief[]> => {
