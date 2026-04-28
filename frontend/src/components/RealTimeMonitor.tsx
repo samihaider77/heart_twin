@@ -163,9 +163,9 @@ export function RealTimeMonitor({
                 hover:border-emerald-500/50 transition-colors text-sm font-mono
               "
             >
-              {patients.map((patientOption) => (
+              {patients?.map((patientOption) => (
                 <option key={patientOption.id} value={patientOption.id}>
-                  Patient {patientOption.id} - {patientOption.age}y {patientOption.sex}
+                  Patient {patientOption?.id} - {patientOption?.age}y {patientOption?.sex}
                 </option>
               ))}
             </select>

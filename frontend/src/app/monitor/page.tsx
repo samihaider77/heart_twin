@@ -33,8 +33,15 @@ export default function MonitorPage() {
         return;
       }
 
-      setSelectedPatientId(data[0].id);
-      const details = await api.getPatient(data[0].id);
+      const firstPatientId = data?.[0]?.id;
+      if (firstPatientId == null) {
+        setCurrentPatient(null);
+        setError('No valid patient records available');
+        return;
+      }
+
+      setSelectedPatientId(firstPatientId);
+      const details = await api.getPatient(firstPatientId);
       setCurrentPatient(details);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error';

@@ -11,7 +11,7 @@ interface PatientSelectorProps {
 }
 
 export default function PatientSelector({ patients, selectedId, onSelect }: PatientSelectorProps) {
-  const selected = patients.find(p => p.id === selectedId);
+  const selected = patients?.find((p) => p?.id === selectedId);
 
   return (
     <div className="relative group">
@@ -34,9 +34,9 @@ export default function PatientSelector({ patients, selectedId, onSelect }: Pati
           onChange={(e) => onSelect(parseInt(e.target.value))}
           className="absolute inset-0 opacity-0 cursor-pointer"
         >
-          {patients.map((p) => (
+          {patients?.map((p) => (
             <option key={p.id} value={p.id}>
-              {p.label}
+              {p?.label}
             </option>
           ))}
         </select>

@@ -75,7 +75,7 @@ function updateHeartMaterials(
 }
 
 const HeartModel = ({ systolicBp, diastolicBp, heartRate, ejectionFraction }: HeartViewer3DProps) => {
-  const { scene } = useGLTF('/models/heart_model.glb');
+  const { scene } = useGLTF('/heart_model.glb');
   const heartRef = useRef<THREE.Group>(null);
 
   useEffect(() => {
