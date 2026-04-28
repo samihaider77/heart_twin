@@ -2,13 +2,8 @@ import axios from 'axios';
 import { Patient, PatientBrief, AIAnalysis } from '../types/patient';
 import { SignalResponse, SignalMetadata, VitalSigns } from '../types/signals';
 
-const DEFAULT_API_ORIGIN = 'http://127.0.0.1:8000';
-
-function normalizeApiBaseUrl(apiUrl?: string): string {
-  const sourceUrl = apiUrl && apiUrl.trim().length > 0 ? apiUrl.trim() : DEFAULT_API_ORIGIN;
-  const withoutTrailingSlash = sourceUrl.replace(/\/+$/, '');
-  return withoutTrailingSlash.endsWith('/api/v1') ? withoutTrailingSlash : `${withoutTrailingSlash}/api/v1`;
-}
+// 1. Sirf ek dafa base URL define karein (Baaki saari definitions mita dein)
+const API_BASE_URL = 'https://heart-twin-960700171922.europe-west1.run.app/api/v1';
 
 function formatApiError(error: unknown): string {
   if (axios.isAxiosError(error)) {
@@ -19,16 +14,13 @@ function formatApiError(error: unknown): string {
           : '';
       return `Request failed with status ${error.response.status}${backendMessage}`;
     }
-
     if (error.request) {
-      return 'Unable to reach backend API. Check NEXT_PUBLIC_API_URL and backend status.';
+      return 'Unable to reach backend API. Check backend status.';
     }
-
     if (error.message) {
       return error.message;
     }
   }
-
   return error instanceof Error ? error.message : 'Unexpected request error';
 }
 
@@ -41,8 +33,7 @@ async function request<T>(call: () => Promise<{ data: T }>): Promise<T> {
   }
 }
 
-const API_BASE_URL = normalizeApiBaseUrl(process.env.NEXT_PUBLIC_API_URL);
-
+// 2. Client banate waqt wahi upar wala constant use karein
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
   timeout: 15000,
