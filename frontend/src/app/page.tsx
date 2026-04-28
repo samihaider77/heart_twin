@@ -35,32 +35,44 @@ export default function Dashboard() {
   const [currentPatient, setCurrentPatient] = useState<Patient | null>(null);
   const [analysis, setAnalysis] = useState<AIAnalysis | null>(null);
   const [loadingAnalysis, setLoadingAnalysis] = useState(false);
+  const [isInitializing, setIsInitializing] = useState(true);
+  const [initError, setInitError] = useState<string | null>(null);
+
+  const handlePatientSelect = useCallback(async (id: number) => {
+    const patientData = await api.getPatient(id);
+    setCurrentPatient(patientData);
+    setAnalysis(null); // Reset analysis for new patient
+  }, []);
+
+  const initializeDashboard = useCallback(async () => {
+    try {
+      setIsInitializing(true);
+      setInitError(null);
+
+      const patientList = await api.getPatients();
+      setPatients(patientList);
+
+      if (patientList.length === 0) {
+        setCurrentPatient(null);
+        setInitError('No patients available');
+        return;
+      }
+
+      await handlePatientSelect(patientList[0].id);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to initialize dashboard';
+      setCurrentPatient(null);
+      setInitError(message);
+      console.error('Failed to initialize dashboard', err);
+    } finally {
+      setIsInitializing(false);
+    }
+  }, [handlePatientSelect]);
 
   // Fetch initial data
   useEffect(() => {
-    const init = async () => {
-      try {
-        const patientList = await api.getPatients();
-        setPatients(patientList);
-        if (patientList.length > 0) {
-          handlePatientSelect(patientList[0].id);
-        }
-      } catch (err) {
-        console.error("Failed to fetch patients", err);
-      }
-    };
-    init();
-  }, []);
-
-  const handlePatientSelect = async (id: number) => {
-    try {
-      const patientData = await api.getPatient(id);
-      setCurrentPatient(patientData);
-      setAnalysis(null); // Reset analysis for new patient
-    } catch (err) {
-      console.error("Failed to fetch patient details", err);
-    }
-  };
+    void initializeDashboard();
+  }, [initializeDashboard]);
 
   const handleVitalsChange = useCallback(async (updates: Partial<Patient>) => {
     if (!currentPatient) return;
@@ -92,7 +104,7 @@ export default function Dashboard() {
     }
   };
 
-  if (!currentPatient) return (
+  if (isInitializing) return (
     <div className="min-h-screen bg-slate-950 flex items-center justify-center">
       <div className="flex flex-col items-center gap-4">
         <Heart className="text-emerald-500 animate-pulse" size={48} />
@@ -100,6 +112,46 @@ export default function Dashboard() {
       </div>
     </div>
   );
+
+  if (initError) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center p-6">
+        <div className="w-full max-w-xl rounded-2xl border border-red-500/30 bg-slate-900/60 p-6 text-center">
+          <h2 className="text-xl font-bold text-red-300">Unable to load dashboard</h2>
+          <p className="mt-3 text-slate-300">{initError}</p>
+          <button
+            type="button"
+            onClick={() => {
+              void initializeDashboard();
+            }}
+            className="mt-5 rounded-lg bg-emerald-600 px-4 py-2 font-medium text-white hover:bg-emerald-500"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!currentPatient) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4 text-center">
+          <Heart className="text-emerald-500" size={48} />
+          <span className="text-slate-300 font-medium">No patient loaded</span>
+          <button
+            type="button"
+            onClick={() => {
+              void initializeDashboard();
+            }}
+            className="rounded-lg bg-emerald-600 px-4 py-2 font-medium text-white hover:bg-emerald-500"
+          >
+            Reload
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <main className="min-h-screen bg-[#020617] text-slate-200 p-4 md:p-8 selection:bg-emerald-500/30">
@@ -137,7 +189,9 @@ export default function Dashboard() {
               patients={patients} 
               selectedId={currentPatient.id} 
               onSelect={(id) => {
-                handlePatientSelect(id);
+                handlePatientSelect(id).catch((err) => {
+                  console.error('Failed to fetch patient details', err);
+                });
               }} 
             />
           </div>

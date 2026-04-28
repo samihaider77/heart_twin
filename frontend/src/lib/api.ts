@@ -2,35 +2,72 @@ import axios from 'axios';
 import { Patient, PatientBrief, AIAnalysis } from '../types/patient';
 import { SignalResponse, SignalMetadata, VitalSigns } from '../types/signals';
 
-const API_BASE_URL = 'https://heart-twin-960700171922.europe-west1.run.app/api/v1';
+const DEFAULT_API_ORIGIN = 'http://127.0.0.1:8000';
+
+function normalizeApiBaseUrl(apiUrl?: string): string {
+  const sourceUrl = apiUrl && apiUrl.trim().length > 0 ? apiUrl.trim() : DEFAULT_API_ORIGIN;
+  const withoutTrailingSlash = sourceUrl.replace(/\/+$/, '');
+  return withoutTrailingSlash.endsWith('/api/v1') ? withoutTrailingSlash : `${withoutTrailingSlash}/api/v1`;
+}
+
+function formatApiError(error: unknown): string {
+  if (axios.isAxiosError(error)) {
+    if (error.response) {
+      const backendMessage =
+        typeof error.response.data?.detail === 'string'
+          ? `: ${error.response.data.detail}`
+          : '';
+      return `Request failed with status ${error.response.status}${backendMessage}`;
+    }
+
+    if (error.request) {
+      return 'Unable to reach backend API. Check NEXT_PUBLIC_API_URL and backend status.';
+    }
+
+    if (error.message) {
+      return error.message;
+    }
+  }
+
+  return error instanceof Error ? error.message : 'Unexpected request error';
+}
+
+async function request<T>(call: () => Promise<{ data: T }>): Promise<T> {
+  try {
+    const response = await call();
+    return response.data;
+  } catch (error) {
+    throw new Error(formatApiError(error));
+  }
+}
+
+const API_BASE_URL = normalizeApiBaseUrl(process.env.NEXT_PUBLIC_API_URL);
+
+const apiClient = axios.create({
+  baseURL: API_BASE_URL,
+  timeout: 15000,
+});
 
 export const api = {
   getPatients: async (): Promise<PatientBrief[]> => {
-    const response = await axios.get(`${API_BASE_URL}/patients`);
-    return response.data;
+    return request(() => apiClient.get('/patients'));
   },
   getPatient: async (id: number): Promise<Patient> => {
-    const response = await axios.get(`${API_BASE_URL}/patients/${id}`);
-    return response.data;
+    return request(() => apiClient.get(`/patients/${id}`));
   },
   updateVitals: async (id: number, vitals: Partial<Patient>): Promise<Patient> => {
-    const response = await axios.put(`${API_BASE_URL}/patients/${id}/vitals`, vitals);
-    return response.data;
+    return request(() => apiClient.put(`/patients/${id}/vitals`, vitals));
   },
   getAIAnalysis: async (data: Partial<Patient>): Promise<AIAnalysis> => {
-    const response = await axios.post(`${API_BASE_URL}/analysis/ai`, data);
-    return response.data;
+    return request(() => apiClient.post('/analysis/ai', data));
   },
   getSignals: async (patientId: number): Promise<SignalResponse> => {
-    const response = await axios.get(`${API_BASE_URL}/signals/${patientId}`);
-    return response.data;
+    return request(() => apiClient.get(`/signals/${patientId}`));
   },
   getSignalMetadata: async (patientId: number): Promise<SignalMetadata> => {
-    const response = await axios.get(`${API_BASE_URL}/signals/${patientId}/metadata`);
-    return response.data;
+    return request(() => apiClient.get(`/signals/${patientId}/metadata`));
   },
   generateSignals: async (vitals: VitalSigns): Promise<SignalResponse> => {
-    const response = await axios.post(`${API_BASE_URL}/signals/generate`, vitals);
-    return response.data;
+    return request(() => apiClient.post('/signals/generate', vitals));
   },
 };

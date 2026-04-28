@@ -11,7 +11,8 @@ def dump_model(model):
         return model.model_dump(exclude_none=True)
     return model.dict(exclude_none=True)
 
-@router.get("/", response_model=List[PatientBrief])
+@router.get("", response_model=List[PatientBrief])
+@router.get("/", response_model=List[PatientBrief], include_in_schema=False)
 async def get_all_patients():
     """Get list of all patients"""
     return data_service.get_patient_list()

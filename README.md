@@ -42,7 +42,7 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 
 2. Install backend dependencies:
 ```bash
-pip install -r backend/requirements.txt
+uv pip install -r backend/requirements.txt
 ```
 
 3. Start Ollama (for AI analysis):
@@ -53,7 +53,7 @@ ollama serve
 
 4. Run the FastAPI server:
 ```bash
-uvicorn backend.app.main:app --reload
+uvicorn backend.app.main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
 ### Frontend Setup
@@ -68,12 +68,48 @@ cd frontend
 npm install
 ```
 
-3. Run the development server:
+3. Create frontend environment file:
+```bash
+# frontend/.env.local
+NEXT_PUBLIC_API_URL=http://127.0.0.1:8000
+```
+
+4. Run the development server:
 ```bash
 npm run dev
 ```
 
 The app will be available at `http://localhost:3000`.
+
+## Environment Configuration
+
+- Frontend reads backend URL from `NEXT_PUBLIC_API_URL`.
+- You can set it either as origin only (`https://api.example.com`) or full base path (`https://api.example.com/api/v1`).
+- If `/api/v1` is omitted, frontend adds it automatically.
+
+Examples:
+
+```bash
+# Local
+NEXT_PUBLIC_API_URL=http://127.0.0.1:8000
+
+# Production
+NEXT_PUBLIC_API_URL=https://your-backend-domain
+```
+
+Backend CORS origins are controlled by `FRONTEND_ORIGINS` (comma-separated), for example:
+
+```bash
+FRONTEND_ORIGINS=http://localhost:3000,https://your-frontend-domain
+```
+
+## Contabo Deployment Notes
+
+1. Deploy backend so it is reachable publicly (domain recommended) and run it on `0.0.0.0`.
+2. Set backend `FRONTEND_ORIGINS` to your frontend URL(s).
+3. Build frontend with `NEXT_PUBLIC_API_URL` already set to deployed backend URL.
+4. If frontend is HTTPS, backend should also be HTTPS to avoid mixed-content blocks.
+5. Verify `GET /api/v1/patients` returns `200` (not `307`) from browser network tab.
 
 ## Technologies Used
 

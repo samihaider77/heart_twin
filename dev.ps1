@@ -13,7 +13,7 @@ try {
 
 # Start Backend
 Write-Host "[*] Starting Backend (FastAPI)..." -ForegroundColor Blue
-Start-Process powershell -ArgumentList "-NoExit", "-Command", "& .\venv\Scripts\Activate.ps1; cd backend; python -m uvicorn app.main:app --host 127.0.0.1 --port 8000"
+Start-Process powershell -ArgumentList "-NoExit", "-Command", "& .\venv\Scripts\Activate.ps1; cd backend; python -m uvicorn app.main:app --host 0.0.0.0 --port 8000"
 
 # Start Frontend
 Write-Host "[*] Starting Frontend (Next.js)..." -ForegroundColor Blue

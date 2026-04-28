@@ -20,10 +20,12 @@ frontend_origins = [
     if origin.strip()
 ]
 
+allow_all_origins = "*" in frontend_origins
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Filhal testing ke liye "*" kar dein taake sab allow ho jaye
-    allow_credentials=True,
+    allow_origins=["*"] if allow_all_origins else frontend_origins,
+    allow_credentials=not allow_all_origins,
     allow_methods=["*"],
     allow_headers=["*"],
 )

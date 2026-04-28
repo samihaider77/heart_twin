@@ -5,7 +5,7 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { ChevronLeft } from 'lucide-react';
 import { RealTimeMonitor } from '@/components/RealTimeMonitor';
@@ -19,30 +19,37 @@ export default function MonitorPage() {
   const [error, setError] = useState<string | null>(null);
   const [selectedPatientId, setSelectedPatientId] = useState<number>(1);
 
+  const initializeMonitor = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      const data = await api.getPatients();
+      setPatients(data);
+
+      if (data.length === 0) {
+        setCurrentPatient(null);
+        setError('No patients available');
+        return;
+      }
+
+      setSelectedPatientId(data[0].id);
+      const details = await api.getPatient(data[0].id);
+      setCurrentPatient(details);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+      setCurrentPatient(null);
+      setError(errorMessage);
+      console.error('Error fetching patients:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
   // Fetch patient list on mount
   useEffect(() => {
-    const fetchPatients = async () => {
-      try {
-        setIsLoading(true);
-        setError(null);
-        const data = await api.getPatients();
-        setPatients(data);
-        if (data.length > 0) {
-          setSelectedPatientId(data[0].id);
-          const details = await api.getPatient(data[0].id);
-          setCurrentPatient(details);
-        }
-      } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : 'Unknown error';
-        setError(errorMessage);
-        console.error('Error fetching patients:', err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchPatients();
-  }, []);
+    void initializeMonitor();
+  }, [initializeMonitor]);
 
   if (isLoading) {
     return (
@@ -63,6 +70,16 @@ export default function MonitorPage() {
           <div className="text-slate-400 mb-4">
             {error || 'No patients available'}
           </div>
+          <button
+            type="button"
+            onClick={() => {
+              void initializeMonitor();
+            }}
+            className="mb-3 inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors"
+          >
+            Retry
+          </button>
+          <div>
           <Link
             href="/"
             className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors"
@@ -70,6 +87,7 @@ export default function MonitorPage() {
             <ChevronLeft size={18} />
             Back to Dashboard
           </Link>
+          </div>
         </div>
       </div>
     );
