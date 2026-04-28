@@ -22,10 +22,11 @@ frontend_origins = [
 
 allow_all_origins = "*" in frontend_origins
 
+# Purana middleware hata kar ye wala laga dein:
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"] if allow_all_origins else frontend_origins,
-    allow_credentials=not allow_all_origins,
+    allow_origins=["*"],  # Is se har frontend (GCP wala bhi) connect ho sakay ga
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
